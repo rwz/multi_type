@@ -23,6 +23,10 @@ module MultiType
             group.public_send m, *args
           end
         end
+
+        def add(*other)
+          MultiType[self, *other]
+        end
       end
     end
   end

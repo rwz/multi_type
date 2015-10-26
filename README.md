@@ -93,6 +93,15 @@ ConnectionErrors = MultiType[
   SocketErrors # note that this is a multi type
 ]
 
+# or like that. Does the same thing:
+
+ConnectionErrors = SocketErrors.add(
+  Excon::Errors::ResponseParseError,
+  Excon::Errors::SocketError,
+  Excon::Errors::Timeout,
+  Net::HTTPBadResponse
+)
+
 # Now ConnectionErrors include all SocketErrors and a bunch of new types
 ```
 

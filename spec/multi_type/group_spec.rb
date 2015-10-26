@@ -46,5 +46,25 @@ describe MultiType::Group do
 
       expect(&action).to_not raise_error
     end
+
+    it "can be combined with other type" do
+      errors = build(ArgumentError, SyntaxError)
+      combined = errors.add(TypeError, NameError)
+
+      [ NameError, TypeError ].each do |klass|
+        expect(klass.new).to_not be_of_type(errors)
+        expect(klass.new).to be_of_type(combined)
+      end
+    end
+
+    it "can be combined with other multi type" do
+      errors = build(ArgumentError, SyntaxError)
+      combined = errors.add(build(TypeError, NameError))
+
+      [ NameError, TypeError ].each do |klass|
+        expect(klass.new).to_not be_of_type(errors)
+        expect(klass.new).to be_of_type(combined)
+      end
+    end
   end
 end
