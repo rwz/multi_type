@@ -1,15 +1,107 @@
 # MultiType
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/multi_type`. To experiment with that code, run `bin/console` for an interactive prompt.
+MultiType lets you create weird module-like objects that match object
+instances of certain types. If this sentense doesn't seem to make sense,
+chances are, you don't really need it anyway.
 
-TODO: Delete this and the text above, and describe your gem
+Here're some potential usecases:
 
-## Installation
+### Type-checks
+
+```ruby
+class WhateverMediator < Mediators::Base
+  Actor = MultiType[User, Admin]
+
+  def initialize(actor:, action:)
+    @actor, @action = actor, action
+    unless Actor === actor
+      raise ArgumentError, "actor must be of Actor type"
+    end
+  end
+
+  def call
+    # actor performing an action maybe?
+  end
+end
+```
+
+### Error Rescuing
+
+```ruby
+
+class MyClient < Clients::Base
+  RetryableErrors = MultiType[
+    EOFError,
+    Excon::Errors::ResponseParseError,
+    Excon::Errors::SocketError,
+    Excon::Errors::Timeout,
+    OpenSSL::SSL::SSLError,
+    SocketError,
+    SystemCallError
+  ]
+
+  CriticalErrors = MultiType[
+    Excon::Errors::Conflict,
+    Excon::Errors::Forbidden,
+    Excon::Errors::NotAcceptable,
+    Excon::Errors::NotFound,
+    Excon::Errors::Unauthorized
+  ]
+
+
+  def perform(**params)
+    log "performing with #{params}"
+
+    connection.post(
+      path: "/call/action",
+      body: JSON.dump(params)
+    )
+  rescue RetryableErrors => error
+    log "failed: #{error}"
+    log "retrying in 10"
+    sleep 10
+    retry
+  rescue CriticalErrors => error
+    log "failed critically: #{error}"
+    perform_cleanup
+  rescue => error # ¯\_(ツ)_/¯
+    log "unexpected error happened: #{error}"
+    raise
+  end
+end
+```
+
+### Combining
+
+Combining MultiType with other types or MultiTypes is as easy as creating
+a new MultiType including all those things:
+
+```ruby
+SocketErrors = MultiType[
+  EOFError,
+  OpenSSL::SSL::SSLError,
+  SocketError,
+  SystemCallError,
+  Timeout::Error
+]
+
+ConnectionErrors = MultiType[
+  Excon::Errors::ResponseParseError,
+  Excon::Errors::SocketError,
+  Excon::Errors::Timeout,
+  Net::HTTPBadResponse,
+  SocketErrors # note that this is a multi type
+]
+
+# Now ConnectionErrors include all SocketErrors and a bunch of new types
+```
+
+### Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'multi_type'
+gem "multi_type"
 ```
 
 And then execute:
@@ -20,22 +112,14 @@ Or install it yourself as:
 
     $ gem install multi_type
 
-## Usage
 
-TODO: Write usage instructions here
+### Contributing
 
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/multi_type.
+Bug reports and pull requests are welcome on GitHub at
+https://github.com/rwz/multi_type.
 
 
-## License
+### License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
 
