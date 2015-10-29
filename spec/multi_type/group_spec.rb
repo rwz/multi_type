@@ -66,5 +66,17 @@ describe MultiType::Group do
         expect(klass.new).to be_of_type(combined)
       end
     end
+
+    it "has #to_a method" do
+      errors = build(ArgumentError, SyntaxError, ArgumentError)
+      expect(errors.to_a).to eq([ArgumentError, SyntaxError])
+    end
+
+    it "has inspect method" do
+      errors = build(ArgumentError, SyntaxError)
+      expect(errors.inspect).to eq("<ArgumentError, SyntaxError>")
+      errors = errors.add(TypeError)
+      expect(errors.inspect).to eq("<ArgumentError, SyntaxError, TypeError>")
+    end
   end
 end
