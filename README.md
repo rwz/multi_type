@@ -1,3 +1,5 @@
+[![Code Climate](https://codeclimate.com/github/rwz/multi_type/badges/gpa.svg)](https://codeclimate.com/github/rwz/multi_type)
+
 # MultiType
 
 MultiType lets you create weird module-like objects that match object
